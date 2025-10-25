@@ -1,77 +1,44 @@
-Football Match SQL Analysis
-
-Overview
-
-This repository contains an example SQL query used for data analysis on a European football (soccer) database. It demonstrates the use of Common Table Expressions (CTEs), JOINs, CASE statements, and window functions (RANK()) to derive specific insights from raw match data.
-
-This project serves as a portfolio piece demonstrating SQL skills for data analysis.
-
-Project Goal
-
-The goal of the main query is to analyze the performance of a specific team, Manchester United, during the 2014/2015 season. Specifically, it aims to:
-
-Identify all matches that Manchester United lost during that season.
-
-Rank these losses by the largest goal difference, pinpointing their "biggest" defeats of the season.
-
-The SQL Query
-
-Here is the query used to find and rank Manchester United's losses in the 2014/2015 season.
-
--- Set up the home team CTE
-WITH home AS (
-  SELECT m.id, t.team_long_name,
-    CASE WHEN m.home_goal > m.away_goal THEN 'MU Win'
-         WHEN m.home_goal < m.away_goal THEN 'MU Loss' 
-         ELSE 'Tie' END AS outcome
-  FROM match AS m
-  LEFT JOIN team AS t ON m.hometeam_id = t.team_api_id),
--- Set up the away team CTE
-away AS (
-  SELECT m.id, t.team_long_name,
-    CASE WHEN m.home_goal > m.away_goal THEN 'MU Loss'
-         WHEN m.home_goal < m.away_goal THEN 'MU Win' 
-         ELSE 'Tie' END AS outcome
-  FROM match AS m
-  LEFT JOIN team AS t ON m.awayteam_id = t.team_api_id)
--- Select columns and and rank the matches by goal difference
-SELECT DISTINCT
-    m.date,
-    home.team_long_name AS home_team,
-    away.team_long_name AS away_team,
-    m.home_goal, m.away_goal,
-    RANK() OVER (ORDER BY ABS(m.home_goal - m.away_goal) DESC) as match_rank
--- Join the CTEs onto the match table
-FROM match AS m
-LEFT JOIN home ON m.id = home.id
-LEFT JOIN away ON m.id = away.id
-WHERE m.season = '2014/2015'
-      AND ((home.team_long_name = 'Manchester United' AND home.outcome = 'MU Loss')
-      OR (away.team_long_name = 'Manchester United' AND away.outcome = 'MU Loss'));
+# ⚽ SQL Analysis: Manchester United's 2014/2015 Season Losses
 
 
-Query Breakdown
+## 📖 Overview
 
-WITH home AS (...): This CTE creates a temporary table that identifies all matches and assigns an outcome ('Win', 'Loss', 'Tie') from the perspective of the home team.
+This repository showcases a SQL query designed to analyze European football match data from DataCamp. It focuses on identifying and ranking Manchester United's losses during the **2014/2015 season** based on goal difference.
 
-WITH away AS (...): This CTE does the same, but assigns the outcome from the perspective of the away team. Notice the win/loss logic is inverted from the home CTE.
+This project serves as a practical example of using SQL for sports analytics, demonstrating skills in data retrieval, transformation, and ranking.
 
-SELECT DISTINCT ...: The main query selects the match details.
+---
 
-RANK() OVER (...): This window function calculates a rank for each match. It orders the results by the absolute difference between home and away goals in descending order (so the largest goal difference gets rank 1).
+## 🎯 Project Goal
 
-FROM match AS m ...: The query joins the main match table with the two CTEs using the match id.
+The primary objective of this query is to:
 
-WHERE m.season = ...: This filters the data to only include the '2014/2015' season.
+1.  **Isolate** all matches lost by Manchester United in the 2014/2015 season.
+2.  **Rank** these losses based on the absolute goal difference (from largest to smallest), effectively identifying their most significant defeats of that season.
 
-WHERE ... (home.team_long_name ...): This is the key logic. It finds all matches from that season where either the home team was 'Manchester United' and the outcome was a 'Loss', or the away team was 'Manchester United' and the outcome was a 'Loss'.
+---
 
-How to Use
+## 🛠️ Key SQL Techniques Demonstrated
 
-This query is intended to be run on a SQL database (like PostgreSQL, MySQL, or SQLite) that contains a schema similar to the European Soccer Database, which is a common source for this type of project.
+* **Common Table Expressions (CTEs):** Structured the query using `WITH` for clarity and modularity (`home`, `away`).
+* **Conditional Logic:** Implemented `CASE WHEN` statements to determine match outcomes relative to the team of interest.
+* **Joins:** Combined data from `match` and `team` tables using `LEFT JOIN`.
+* **Window Functions:** Applied `RANK() OVER()` to rank matches based on calculated goal difference without collapsing rows.
+* **Filtering:** Used `WHERE` clauses to specify the season and the precise loss conditions for Manchester United.
 
-You will need at least two tables:
+---
 
-match (with columns like id, hometeam_id, awayteam_id, home_goal, away_goal, season)
+## Tables named `match` and `team` with the relevant columns:
+    * `match`: `id`, `country_id`, `season`, 'stage', `date`, `hometeam_id`, `awayteam_id`, `home_goal`, `away_goal`
+    * `team`: `team_api_id`, `team_long_name`, `team_short_name`
 
-team (with columns like team_api_id, team_long_name)
+---
+
+## ⚙️ How It Works
+
+* **`home` CTE:** Temporarily tags each match with an outcome ('MU Win', 'MU Loss', 'Tie') assuming Manchester United is the home team.
+* **`away` CTE:** Does the same, but assumes Manchester United is the away team (inverting the win/loss logic).
+* **Main `SELECT`:** Pulls distinct match details (date, teams, score).
+* **`RANK()`:** Calculates the `match_rank` based on the largest goal difference (`ABS(home_goal - away_goal)`). The biggest defeat gets rank 1.
+* **`JOIN`s:** Connects the `match` table with the `home` and `away` CTEs using the unique match `id`.
+* **`WHERE` Clause:** Filters results to the '2014/2015' season and selects only rows where the CTE logic identified a 'MU Loss' for Manchester United, whether they played home or away.
