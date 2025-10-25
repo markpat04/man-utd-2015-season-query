@@ -32,7 +32,6 @@ The primary objective of this query is to:
     * `match`: `id`, `country_id`, `season`, 'stage', `date`, `hometeam_id`, `awayteam_id`, `home_goal`, `away_goal`
     * `team`: `team_api_id`, `team_long_name`, `team_short_name`
 
----
 
 ## ⚙️ How It Works
 
